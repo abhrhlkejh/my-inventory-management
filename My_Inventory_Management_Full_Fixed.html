@@ -1,0 +1,1280 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Inventory Management</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+:root {
+    --primary:#087f5b;
+    --primary-dark:#056044;
+    --secondary:#2563eb;
+    --bg:#f4f7fb;
+    --white:#fff;
+    --text:#172b4d;
+    --muted:#718096;
+    --border:#e5eaf1;
+    --danger:#dc3545;
+    --success:#16a34a;
+    --shadow:0 5px 20px rgba(30,50,80,.07);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,"Noto Sans Bengali",sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{text-decoration:none;color:inherit}
+.app-container{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#102b36;color:white;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;z-index:10;overflow-y:auto}
+.brand{padding:23px 20px;border-bottom:1px solid #ffffff20}
+.brand i{font-size:30px;color:#34d399}
+.brand h2{font-size:18px;margin-top:8px}
+.brand p{color:#a7c2c8;margin-top:5px;font-size:12px}
+.sidebar-menu{padding:14px 10px;flex:1}
+.sidebar-menu a{display:flex;align-items:center;gap:10px;padding:11px 13px;margin-bottom:5px;border-radius:8px;color:#cbd5e1}
+.sidebar-menu a:hover,.sidebar-menu a.active{background:var(--primary);color:white}
+.sidebar-menu i{font-size:17px}
+.sidebar-footer{padding:18px;border-top:1px solid #ffffff20}
+.main-content{margin-left:240px;width:calc(100% - 240px);padding:24px;min-width:0}
+.topbar{background:white;border-radius:12px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow);margin-bottom:22px}
+.topbar h2{font-size:22px}
+.topbar p{color:var(--muted);margin-top:5px}
+.admin-profile{font-weight:bold}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:22px}
+.stat-card{background:white;padding:19px;border-radius:12px;box-shadow:var(--shadow);border-left:4px solid var(--primary)}
+.stat-card p{color:var(--muted);margin-bottom:10px}
+.stat-card h2,.stat-card h3{font-size:24px;color:var(--primary)}
+.sales-layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
+.product-section,.cart-section,.content-section{background:white;padding:20px;border-radius:12px;box-shadow:var(--shadow)}
+.cart-section{position:sticky;top:15px}
+.section-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:17px}
+.section-header h2,.cart-section h2{font-size:19px}
+.primary-btn{background:var(--primary);color:white;border:0;padding:10px 15px;border-radius:7px;font-weight:bold}
+.primary-btn:hover{background:var(--primary-dark)}
+input,select,textarea{padding:11px;border:1px solid var(--border);border-radius:7px;background:white}
+input:focus,select:focus,textarea:focus{outline:1px solid var(--primary)}
+#productSearch{width:100%;margin-bottom:14px}
+.category-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:17px}
+.category-filter button{padding:7px 13px;border:1px solid var(--border);border-radius:20px;background:#f1f5f9}
+.category-filter button.active{background:var(--primary);color:white}
+.product-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.product-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:white}
+.product-card img{width:100%;height:130px;object-fit:cover;background:#edf2f7;cursor:pointer}
+.product-card-content{padding:11px}
+.product-card h3{font-size:14px;margin-bottom:8px}
+.product-card .price{color:var(--primary);font-size:16px;font-weight:bold;margin:7px 0}
+.product-card .stock{color:var(--muted);font-size:12px;margin-bottom:8px}
+.product-card input[type=checkbox]{width:18px;height:18px;accent-color:var(--primary)}
+.cart-section h2{margin-bottom:15px}
+#cartItems{max-height:350px;overflow:auto;min-height:70px}
+.cart-item{display:flex;justify-content:space-between;gap:8px;padding:11px 0;border-bottom:1px solid var(--border)}
+.cart-item h4{font-size:13px;margin-bottom:5px}
+.cart-item button{border:0;border-radius:5px;padding:5px 8px;background:#e8f5ef;color:var(--primary)}
+.cart-item button[data-remove]{background:#fee2e2;color:var(--danger)}
+.quantity-control{display:flex;align-items:center;gap:8px;margin-top:7px}
+.quantity-control button{width:26px;height:26px;font-weight:bold}
+.cart-summary{border-top:1px solid var(--border);margin-top:14px;padding-top:14px}
+.cart-summary p{display:flex;justify-content:space-between;margin:10px 0}
+.cart-summary h3{color:var(--primary);margin:13px 0}
+.cart-summary label,.form-card label{display:block;font-weight:bold;margin:12px 0 6px}
+.cart-summary input,.cart-summary select{width:100%}
+#confirmSaleBtn,.form-card button{width:100%;padding:12px;background:var(--primary);color:white;border:0;border-radius:8px;margin-top:14px;font-weight:bold}
+#confirmSaleBtn:disabled{background:#94a3b8}
+.content-section{margin-top:23px;scroll-margin-top:15px}
+.content-section h2{font-size:20px;margin-bottom:17px}
+.form-card{max-width:650px}
+.form-card input,.form-card select,.form-card textarea{width:100%}
+.form-card textarea{min-height:75px}
+.table-container{width:100%;overflow-x:auto;margin-top:15px}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th,td{padding:11px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:#f1f5f9}
+td{color:#475569}
+.small-btn{padding:6px 10px;border:0;border-radius:5px;background:#e8f5ef;color:var(--primary);font-weight:bold;margin:2px}
+.danger-btn{background:#fee2e2;color:var(--danger)}
+.blue-btn{background:#e8efff;color:#2563eb}
+.demand-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:15px 0}
+.demand-box{padding:16px;background:#f8fafc;border:1px solid var(--border);border-radius:10px}
+.demand-box p{font-size:12px;color:var(--muted);margin-bottom:8px}
+.demand-box h3{font-size:23px;color:var(--primary)}
+.demand-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:15px 0}
+.demand-toolbar input,.demand-toolbar select{max-width:190px}
+.demand-note{background:#eff6ff;border-left:4px solid #2563eb;padding:12px;border-radius:6px;margin:12px 0;color:#1e40af;line-height:1.6}
+.demand-high{color:#dc3545;font-weight:bold}
+.demand-low{color:#16a34a;font-weight:bold}
+.badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;background:#e8f5ef;color:#087f5b}
+footer{text-align:center;color:var(--muted);padding:25px}
+@media(max-width:1100px){
+ .stats-grid,.demand-summary{grid-template-columns:repeat(2,1fr)}
+ .sales-layout{grid-template-columns:1fr}
+ .cart-section{position:static}
+}
+@media(max-width:768px){
+ .sidebar{width:65px}
+ .brand{text-align:center;padding:16px 5px}
+ .brand h2,.brand p,.sidebar-footer,.menu-text{display:none}
+ .sidebar-menu{padding:10px 6px}
+ .sidebar-menu a{justify-content:center;padding:13px 5px}
+ .main-content{margin-left:65px;width:calc(100% - 65px);padding:12px}
+ .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .topbar{padding:14px}
+ .topbar h2{font-size:18px}
+ .product-section,.cart-section,.content-section{padding:14px}
+}
+@media(max-width:420px){
+ .stats-grid,.demand-summary{grid-template-columns:repeat(2,1fr);gap:8px}
+ .stat-card{padding:12px}
+ .stat-card h2{font-size:19px}
+ .product-card img{height:105px}
+}
+
+.product-actions .secondary-btn,
+.product-actions .danger-btn {
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.product-actions .secondary-btn { background: #e8eef7; color: #23436b; }
+.product-actions button { border:0; border-radius:8px; padding:9px 12px; cursor:pointer; font-weight:600; }
+.product-actions .danger-btn { background: #fee2e2; color: #b42318; }
+.product-actions button:disabled { opacity: .55; cursor: not-allowed; }
+
+</style>
+</head>
+
+<body>
+<div class="app-container">
+
+<aside class="sidebar">
+    <div class="brand">
+        <i class="bi bi-box-seam"></i>
+        <h2>MY INVENTORY</h2>
+        <p>Business Management</p>
+    </div>
+    <nav class="sidebar-menu">
+        <a href="#dashboard"><i class="bi bi-speedometer2"></i><span class="menu-text">Dashboard</span></a>
+        <a href="#products"><i class="bi bi-grid"></i><span class="menu-text">Products</span></a>
+        <a href="#add-product"><i class="bi bi-plus-square"></i><span class="menu-text">Add Product</span></a>
+        <a href="#categories"><i class="bi bi-tags"></i><span class="menu-text">Categories</span></a>
+        <a href="#daily-demand"><i class="bi bi-graph-up-arrow"></i><span class="menu-text">Daily Demand</span></a>
+        <a href="#purchase"><i class="bi bi-bag"></i><span class="menu-text">Purchase</span></a>
+        <a href="#stock-in"><i class="bi bi-box-arrow-in-down"></i><span class="menu-text">Stock In</span></a>
+        <a href="#stock-out"><i class="bi bi-box-arrow-up"></i><span class="menu-text">Stock Out</span></a>
+        <a href="#sales"><i class="bi bi-receipt"></i><span class="menu-text">Sales</span></a>
+        <a href="#cart"><i class="bi bi-cart3"></i><span class="menu-text">Shopping Cart</span></a>
+        <a href="#stock"><i class="bi bi-boxes"></i><span class="menu-text">Stock Management</span></a>
+        <a href="#customers"><i class="bi bi-people"></i><span class="menu-text">Customers</span></a>
+        <a href="#suppliers"><i class="bi bi-truck"></i><span class="menu-text">Suppliers</span></a>
+        <a href="#expenses"><i class="bi bi-wallet2"></i><span class="menu-text">Expenses</span></a>
+        <a href="#reports"><i class="bi bi-bar-chart"></i><span class="menu-text">Reports</span></a>
+        <a href="#history"><i class="bi bi-clock-history"></i><span class="menu-text">History</span></a>
+        <a href="#settings"><i class="bi bi-gear"></i><span class="menu-text">Settings</span></a>
+    </nav>
+    <div class="sidebar-footer"><i class="bi bi-person-circle"></i> Administrator</div>
+</aside>
+
+<main class="main-content">
+<header class="topbar">
+    <div><h2>Inventory Dashboard</h2><p>Business Overview & Management</p></div>
+    <div class="admin-profile"><span id="syncStatus" class="badge">Connecting to Google Sheets...</span> <i class="bi bi-person-circle"></i> Admin</div>
+</header>
+
+<section id="dashboard">
+    <div class="stats-grid">
+        <div class="stat-card"><p>Total Products</p><h2 id="totalProducts">0</h2></div>
+        <div class="stat-card"><p>Total Stock</p><h2 id="totalStock">0</h2></div>
+        <div class="stat-card"><p>Today's Sales</p><h2 id="todaySales">৳0</h2></div>
+        <div class="stat-card"><p>Today's Profit</p><h2 id="todayProfit">৳0</h2></div>
+    </div>
+</section>
+
+<div class="sales-layout">
+<section class="product-section" id="products">
+    <div class="section-header">
+        <h2>Product Gallery</h2>
+        <a href="#add-product" class="primary-btn">+ Add Product</a>
+    </div>
+    <input type="search" id="productSearch" placeholder="Search products...">
+    <div class="category-filter" id="categoryFilter">
+        <button data-category="all" class="active">All</button>
+    </div>
+    <div class="product-grid" id="productGrid"></div>
+</section>
+
+<aside class="cart-section" id="cart">
+    <h2><i class="bi bi-cart3"></i> Shopping Cart</h2>
+    <div id="cartItems"><p>Your cart is empty.</p></div>
+    <div class="cart-summary">
+        <p>Total Items: <strong id="cartTotalItems">0</strong></p>
+        <p>Subtotal: <strong id="cartSubtotal">৳0</strong></p>
+        <label>Discount</label>
+        <input type="number" id="cartDiscount" value="0" min="0">
+        <h3>Grand Total: <span id="cartGrandTotal">৳0</span></h3>
+        <label>Payment Method</label>
+        <select id="paymentMethod">
+            <option value="cash">Cash</option>
+            <option value="bkash">bKash</option>
+            <option value="nagad">Nagad</option>
+            <option value="due">Due</option>
+        </select>
+        <label>Customer Name</label>
+        <input id="customerName" placeholder="Customer name">
+        <label>Customer Phone</label>
+        <input id="customerPhone" placeholder="Phone number">
+        <button id="confirmSaleBtn" disabled>Confirm Sale</button>
+    </div>
+</aside>
+</div>
+
+<section id="add-product" class="content-section">
+<h2>Add New Product</h2>
+<form id="productForm" class="form-card">
+    <label>Product Image</label><input type="file" id="productImage" accept="image/*">
+    <label>Product Name</label><input id="productName" required>
+    <label>Category</label>
+    <select id="productCategory" required><option value="">Select Category</option></select>
+    <label>Purchase Price</label><input type="number" id="purchasePrice" min="0" step=".01" required>
+    <label>Sale Price</label><input type="number" id="salePrice" min="0" step=".01" required>
+    <label>Opening Stock</label><input type="number" id="openingStock" min="0" step="1" required>
+    <label>Unit</label>
+    <select id="productUnit">
+        <option value="pcs">Piece</option><option value="kg">KG</option><option value="liter">Liter</option><option value="packet">Packet</option><option value="dozen">Dozen</option>
+    </select>
+    <label>Description</label><textarea id="productDescription"></textarea>
+    <button type="submit" id="productSubmitBtn">Save Product</button>
+</form>
+</section>
+
+<section id="categories" class="content-section">
+    <h2><i class="bi bi-tags"></i> Category Management</h2>
+    <form id="categoryForm" class="form-card">
+        <label>Category Name</label>
+        <input id="categoryName" required placeholder="যেমন Food, Grocery">
+        <button type="submit" id="categorySubmitBtn">Add Category</button>
+        <button type="button" class="small-btn danger-btn" id="cancelCategoryEdit" style="display:none">Cancel</button>
+    </form>
+    <div id="categoryTableBody"></div>
+</section>
+
+<!-- DAILY DEMAND -->
+<section id="daily-demand" class="content-section">
+    <h2><i class="bi bi-graph-up-arrow"></i> Daily Demand Management</h2>
+    <p>আগের ৭ দিনের বিক্রি থেকে দৈনিক গড় চাহিদা হিসাব হবে। চাইলে Edit করে নিজের চাহিদা নির্ধারণ করতে পারবে।</p>
+
+    <div class="demand-summary">
+        <div class="demand-box"><p>মোট দৈনিক চাহিদা</p><h3 id="demandTotal">0</h3></div>
+        <div class="demand-box"><p>বর্তমান মোট স্টক</p><h3 id="demandStock">0</h3></div>
+        <div class="demand-box"><p>Stock In প্রয়োজন</p><h3 id="demandNeed">0</h3></div>
+        <div class="demand-box"><p>পণ্য সংখ্যা</p><h3 id="demandProducts">0</h3></div>
+    </div>
+
+    <div class="demand-note">
+        <strong>Automatic হিসাব:</strong> আগের ৭ দিনের বিক্রির গড় = দৈনিক চাহিদা।
+        Edit করলে Manual হবে। আবার Automatic বাটনে চাপলে ৭ দিনের গড় ফিরে আসবে।
+    </div>
+
+    <div class="demand-toolbar">
+        <input type="date" id="demandHistoryDate">
+        <button class="primary-btn" id="refreshDemandBtn">Refresh Demand</button>
+        <button class="primary-btn" id="saveDemandHistoryBtn">আজকের হিসাব সংরক্ষণ</button>
+    </div>
+
+    <div class="table-container" id="demandTable"></div>
+
+    <h3 style="margin-top:25px">তারিখ অনুযায়ী Demand History</h3>
+    <div class="table-container" id="demandHistoryTable"></div>
+</section>
+
+<section id="purchase" class="content-section">
+    <h2><i class="bi bi-bag"></i> Purchase Order & Supplier হিসাব</h2>
+    <div class="demand-note">অর্ডার তৈরি করার সময় Stock বা Supplier Due বাড়বে না। Stock In-এ অর্ডারের সম্পূর্ণ পণ্য একবারে গ্রহণ করলে তবেই Stock ও Supplier Payable হিসাব হবে। Supplier Payment আংশিক দেওয়া যাবে।</div>
+    <h3>নতুন Purchase Order</h3>
+    <form id="purchaseOrderForm" class="form-card">
+        <label>Product</label><select id="poProduct" required></select>
+        <label>Order Quantity</label><input type="number" id="poQty" min="1" step="1" required>
+        <label>Purchase Price (প্রতি ইউনিট)</label><input type="number" id="poPrice" min="0" step=".01" required>
+        <label>Supplier</label><input id="poSupplier" required placeholder="Supplier name">
+        <label>Order Date</label><input type="date" id="poDate" required>
+        <button type="submit">Create Purchase Order</button>
+    </form>
+
+    <h3 style="margin-top:25px">Supplier Payment</h3>
+    <form id="supplierPaymentForm" class="form-card">
+        <label>Received Purchase Order</label><select id="paymentOrder" required></select>
+        <label>Supplier Due</label><input id="paymentDueDisplay" readonly placeholder="Select an order">
+        <label>Payment Amount</label><input type="number" id="paymentAmount" min="0.01" step=".01" required>
+        <label>Payment Date</label><input type="date" id="paymentDate" required>
+        <label>Payment Method</label><select id="paymentMethodSupplier"><option>Cash</option><option>bKash</option><option>Nagad</option><option>Bank</option><option>Other</option></select>
+        <label>Note</label><textarea id="paymentNote"></textarea>
+        <button type="submit">Save Supplier Payment</button>
+    </form>
+
+    <h3 style="margin-top:25px">Purchase Order History</h3>
+    <div id="purchaseTableBody"></div>
+    <h3 style="margin-top:25px">Supplier-wise Due Summary</h3>
+    <div id="supplierDueTable"></div>
+</section>
+
+<section id="stock-in" class="content-section">
+<h2><i class="bi bi-box-arrow-in-down"></i> Product In — সম্পূর্ণ অর্ডার গ্রহণ</h2>
+<p class="demand-note">এখানে শুধু Pending Purchase Order গ্রহণ করা যাবে। Partial Receive নেই। একবারে অর্ডারের সম্পূর্ণ Quantity Stock-এ যোগ হবে।</p>
+<form id="stockInForm" class="form-card">
+    <label>Purchase Order</label><select id="stockInOrder" required></select>
+    <label>Product</label><input id="stockInProductName" readonly>
+    <label>Order Quantity</label><input id="stockInQty" readonly>
+    <label>Purchase Price (প্রতি ইউনিট)</label><input id="stockInPrice" readonly>
+    <label>Supplier</label><input id="stockInSupplier" readonly>
+    <label>Receive Date</label><input type="date" id="stockInDate" required>
+    <button type="submit">Receive Full Order / Product In</button>
+</form>
+</section>
+
+<section id="stock-out" class="content-section">
+<h2>Stock Out</h2>
+<form id="stockOutForm" class="form-card">
+    <label>Product</label><select id="stockOutProduct" required></select>
+    <label>Quantity</label><input type="number" id="stockOutQty" min="1" step="1" required>
+    <label>Reason</label>
+    <select id="stockOutReason"><option value="damage">Damaged</option><option value="expired">Expired</option><option value="personal">Personal Use</option><option value="other">Other</option></select>
+    <label>Date</label><input type="date" id="stockOutDate" required>
+    <button type="submit">Save Stock Out</button>
+</form>
+</section>
+
+<section id="sales" class="content-section">
+<h2>Sales History</h2><input type="date" id="salesFilterDate"><div id="salesTableBody"></div>
+</section>
+
+<section id="stock" class="content-section">
+<h2>Stock Management</h2><div id="stockTableBody"></div>
+</section>
+
+<section id="customers" class="content-section">
+<h2>Customers</h2>
+<form id="customerForm" class="form-card">
+<label>Name</label><input id="newCustomerName">
+<label>Phone</label><input id="newCustomerPhone">
+<label>Address</label><textarea id="newCustomerAddress"></textarea>
+<button type="submit">Save Customer</button>
+</form>
+<div id="customerTableBody"></div>
+</section>
+
+<section id="suppliers" class="content-section">
+<h2>Suppliers</h2>
+<form id="supplierForm" class="form-card">
+<label>Supplier Name</label><input id="supplierName">
+<label>Phone</label><input id="supplierPhone">
+<label>Address</label><textarea id="supplierAddress"></textarea>
+<button type="submit">Save Supplier</button>
+</form>
+<div id="supplierTableBody"></div>
+</section>
+
+<section id="expenses" class="content-section">
+<h2>Business Expenses</h2>
+<form id="expenseForm" class="form-card">
+<label>Expense Name</label><input id="expenseName" required>
+<label>Amount</label><input type="number" id="expenseAmount" min="0" required>
+<label>Date</label><input type="date" id="expenseDate" required>
+<button type="submit">Save Expense</button>
+</form>
+<div id="expenseTableBody"></div>
+</section>
+
+<section id="reports" class="content-section">
+<h2>Daily Stock Report</h2>
+<label>Select Date</label><input type="date" id="reportDate">
+<div class="demand-summary">
+    <div class="demand-box"><p>Opening Stock</p><h3 id="openingStockReport">0</h3></div>
+    <div class="demand-box"><p>Stock In</p><h3 id="stockInReport">0</h3></div>
+    <div class="demand-box"><p>Stock Out</p><h3 id="stockOutReport">0</h3></div>
+    <div class="demand-box"><p>Closing Stock</p><h3 id="closingStockReport">0</h3></div>
+</div>
+<button class="primary-btn" id="generateReportBtn">Generate Report</button>
+</section>
+
+<section id="history" class="content-section">
+<h2>Transaction History</h2><div id="historyTableBody"></div>
+</section>
+
+<section id="settings" class="content-section">
+<h2>Settings</h2>
+<form id="settingsForm" class="form-card">
+<label>Business Name</label><input id="businessName" value="My Inventory">
+<label>Currency</label><select id="currency"><option value="BDT">BDT - Taka</option></select>
+<button type="submit">Save Settings</button>
+</form>
+</section>
+
+<footer>My Inventory Management © 2026</footer>
+</main>
+</div>
+
+<script>
+"use strict";
+
+/* DATABASE */
+const DB_KEY = "my_inventory_database_v2";
+
+function emptyDB(){
+    return {
+        products:[], categories:[], sales:[], purchases:[], stockHistory:[],
+        customers:[], suppliers:[], expenses:[], demandHistory:[]
+    };
+}
+
+function loadDB(){
+    try{
+        const data = JSON.parse(localStorage.getItem(DB_KEY));
+        if(data && typeof data === "object"){
+            const base = emptyDB();
+            Object.keys(base).forEach(key=>{
+                if(Array.isArray(data[key])) base[key]=data[key];
+            });
+            return base;
+        }
+    }catch(error){console.error(error)}
+    return emptyDB();
+}
+
+let db=loadDB();
+let cart=[];
+let activeCategory="all";
+
+function saveDB(){
+    try{
+        localStorage.setItem(DB_KEY,JSON.stringify(db));
+        queueCloudSave();
+        return true;
+    }catch(error){
+        alert("Browser storage পূর্ণ। ছবি ছোট করুন অথবা পুরোনো ডেটা ব্যাকআপ নিন।");
+        console.error(error);
+        return false;
+    }
+}
+
+/* COMMON */
+const $=id=>document.getElementById(id);
+const money=n=>"৳"+Number(n||0).toFixed(2);
+const today=()=>{
+    const d=new Date();
+    d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+    return d.toISOString().slice(0,10);
+};
+const makeID=prefix=>prefix+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();
+const escapeHTML=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const getProduct=id=>db.products.find(p=>p.id===id);
+const message=text=>alert(text);
+
+function dateMinusDays(days){
+    const d=new Date();
+    d.setHours(12,0,0,0);
+    d.setDate(d.getDate()-days);
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function dateTime(){return new Date().toLocaleString("en-BD")}
+
+function migrateCategories(){
+    if(!Array.isArray(db.categories)) db.categories=[];
+    const names=[...new Set(db.products.map(p=>String(p.category||"").trim()).filter(Boolean))];
+    names.forEach(name=>{
+        if(!db.categories.some(c=>String(c.name).toLowerCase()===name.toLowerCase())){
+            db.categories.push({id:makeID("CAT-"),name,createdAt:today()});
+        }
+    });
+    if(!db.categories.length){
+        ["Food","Grocery","Others"].forEach(name=>db.categories.push({id:makeID("CAT-"),name,createdAt:today()}));
+    }
+}
+migrateCategories();
+
+/* GOOGLE SHEETS CLOUD SYNC */
+let cloudReady=false;
+let cloudSaveTimer=null;
+let cloudSaveChain=Promise.resolve();
+
+function setSyncStatus(text,good){
+    const el=$("syncStatus");
+    if(el){el.textContent=text;el.style.background=good?"#dcfce7":"#fee2e2";el.style.color=good?"#166534":"#991b1b";}
+}
+function queueCloudSave(){
+    if(!cloudReady || !window.google || !google.script || !google.script.run) return;
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer=setTimeout(()=>{
+        const snapshot=JSON.stringify(db);
+        cloudSaveChain=cloudSaveChain.then(()=>new Promise(resolve=>{
+            google.script.run
+                .withSuccessHandler(res=>{
+                    setSyncStatus("Google Sheets Synced",true);
+                    resolve();
+                })
+                .withFailureHandler(err=>{
+                    setSyncStatus("Sync failed - local backup saved",false);
+                    console.error(err);
+                    resolve();
+                })
+                .saveDatabase(snapshot);
+        }));
+    },350);
+}
+function loadCloudDatabase(){
+    return new Promise(resolve=>{
+        if(!window.google || !google.script || !google.script.run){
+            setSyncStatus("Local mode - open deployed Apps Script URL",false);
+            resolve(false);
+            return;
+        }
+        setSyncStatus("Loading Google Sheets...",true);
+        google.script.run
+            .withSuccessHandler(result=>{
+                if(result && typeof result==="object"){
+                    const serverHasData=Object.keys(emptyDB()).some(k=>Array.isArray(result[k])&&result[k].length>0);
+                    if(serverHasData){
+                        const base=emptyDB();
+                        Object.keys(base).forEach(k=>{if(Array.isArray(result[k])) db[k]=result[k];});
+                    }else{
+                        // প্রথমবার Sheets খালি থাকলে এই Browser-এর আগের ডেটা Sheets-এ পাঠাও
+                        migrateCategories();
+                    }
+                    localStorage.setItem(DB_KEY,JSON.stringify(db));
+                }
+                cloudReady=true;
+                setSyncStatus("Google Sheets Connected",true);
+                if(result && !Object.keys(result).some(k=>Array.isArray(result[k])&&result[k].length>0)) queueCloudSave();
+                resolve(true);
+            })
+            .withFailureHandler(err=>{
+                console.error(err);
+                setSyncStatus("Google Sheets connection failed",false);
+                resolve(false);
+            })
+            .getDatabase();
+    });
+}
+
+
+
+/* CATEGORY MANAGEMENT */
+let editingCategoryId=null;
+function renderCategories(){
+    const box=$("categoryTableBody");
+    if(!box)return;
+    box.innerHTML=db.categories.length?`
+    <div class="table-container"><table><thead><tr><th>#</th><th>Category</th><th>Products</th><th>Action</th></tr></thead><tbody>
+    ${db.categories.map((c,i)=>`<tr><td>${i+1}</td><td>${escapeHTML(c.name)}</td>
+    <td>${db.products.filter(p=>p.category===c.name).length}</td>
+    <td><button class="small-btn blue-btn" data-cat-edit="${escapeHTML(c.id)}">Edit</button>
+    <button class="small-btn danger-btn" data-cat-delete="${escapeHTML(c.id)}">Delete</button></td></tr>`).join("")}
+    </tbody></table></div>`:"<p>No categories yet.</p>";
+}
+function renderCategoryOptions(){
+    const s=$("productCategory"),old=s.value;
+    s.innerHTML='<option value="">Select Category</option>'+db.categories.map(c=>`<option value="${escapeHTML(c.name)}">${escapeHTML(c.name)}</option>`).join("");
+    if(db.categories.some(c=>c.name===old))s.value=old;
+}
+function renderCategoryFilters(){
+    $("categoryFilter").innerHTML='<button data-category="all" class="'+(activeCategory==="all"?"active":"")+'">All</button>'+
+    db.categories.map(c=>`<button data-category="${escapeHTML(c.name)}" class="${activeCategory===c.name?"active":""}">${escapeHTML(c.name)}</button>`).join("");
+}
+function resetCategoryForm(){
+    editingCategoryId=null;$("categoryForm").reset();
+    $("categorySubmitBtn").textContent="Add Category";$("cancelCategoryEdit").style.display="none";
+}
+$("categoryForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const name=$("categoryName").value.trim();
+    if(!name)return;
+    if(db.categories.some(c=>c.name.toLowerCase()===name.toLowerCase()&&c.id!==editingCategoryId)){message("এই Category আগে থেকেই আছে।");return;}
+    const backup=JSON.stringify(db);
+    if(editingCategoryId){
+        const c=db.categories.find(x=>x.id===editingCategoryId);if(!c)return;
+        const old=c.name;c.name=name;
+        db.products.forEach(p=>{if(p.category===old)p.category=name;});
+        if(activeCategory===old)activeCategory=name;
+    }else db.categories.push({id:makeID("CAT-"),name,createdAt:today()});
+    if(!saveDB()){db=JSON.parse(backup);return;}
+    resetCategoryForm();renderAll();message("Category saved.");
+});
+$("cancelCategoryEdit").addEventListener("click",resetCategoryForm);
+$("categoryTableBody").addEventListener("click",e=>{
+    const eb=e.target.closest("[data-cat-edit]"),dbtn=e.target.closest("[data-cat-delete]");
+    if(eb){
+        const c=db.categories.find(x=>x.id===eb.dataset.catEdit);if(!c)return;
+        editingCategoryId=c.id;$("categoryName").value=c.name;
+        $("categorySubmitBtn").textContent="Update Category";$("cancelCategoryEdit").style.display="block";
+    }
+    if(dbtn){
+        const c=db.categories.find(x=>x.id===dbtn.dataset.catDelete);if(!c)return;
+        if(db.products.some(p=>p.category===c.name)){message("এই Category-তে পণ্য আছে। আগে পণ্যের Category পরিবর্তন করুন।");return;}
+        if(!confirm("এই Category Delete করবেন?"))return;
+        db.categories=db.categories.filter(x=>x.id!==c.id);
+        if(activeCategory===c.name)activeCategory="all";
+        saveDB();renderAll();message("Category deleted.");
+    }
+});
+$("categoryFilter").addEventListener("click",e=>{
+    const b=e.target.closest("[data-category]");if(!b)return;
+    activeCategory=b.dataset.category;renderCategoryFilters();renderProducts();
+});
+
+
+/* PRODUCT GALLERY */
+function renderProducts(){
+    const grid=$("productGrid");
+    const search=$("productSearch").value.trim().toLowerCase();
+    const list=db.products.filter(p=>
+        p.name.toLowerCase().includes(search) &&
+        (activeCategory==="all"||p.category===activeCategory)
+    );
+
+    if(!list.length){grid.innerHTML="<p>কোনো পণ্য নেই।</p>";return}
+
+    grid.innerHTML=list.map(p=>`
+    <div class="product-card">
+        <img class="product-image" data-id="${escapeHTML(p.id)}"
+        src="${p.image||"https://placehold.co/300x200?text=Product"}"
+        alt="${escapeHTML(p.name)}">
+        <div class="product-card-content">
+            <label style="display:flex;align-items:center;gap:8px">
+                <input type="checkbox" class="product-select" data-id="${escapeHTML(p.id)}">
+                <strong>${escapeHTML(p.name)}</strong>
+            </label>
+            <p class="price">${money(p.salePrice)}</p>
+            <p class="stock">Stock: ${p.stock} ${escapeHTML(p.unit)}</p>
+            <div class="product-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+                <button type="button" class="primary-btn add-to-cart" data-id="${escapeHTML(p.id)}" ${p.stock<=0?"disabled":""}>Add to Cart</button>
+                <button type="button" class="secondary-btn" data-product-edit="${escapeHTML(p.id)}">Edit</button>
+                <button type="button" class="danger-btn" data-product-delete="${escapeHTML(p.id)}">Delete</button>
+            </div>
+        </div>
+    </div>`).join("");
+}
+
+$("productGrid").addEventListener("click",e=>{
+    const edit=e.target.closest("[data-product-edit]");
+    const del=e.target.closest("[data-product-delete]");
+    if(edit){startProductEdit(edit.dataset.productEdit);return;}
+    if(del){removeProduct(del.dataset.productDelete);return;}
+    const image=e.target.closest(".product-image");
+    const button=e.target.closest(".add-to-cart");
+    if(image)addToCart(image.dataset.id);
+    if(button)addToCart(button.dataset.id);
+});
+$("productGrid").addEventListener("change",e=>{
+    if(e.target.matches(".product-select") && e.target.checked)addToCart(e.target.dataset.id);
+});
+$("productSearch").addEventListener("input",renderProducts);
+document.querySelectorAll(".category-filter button").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+        activeCategory=btn.dataset.category;
+        document.querySelectorAll(".category-filter button").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        renderProducts();
+    });
+});
+
+/* ADD PRODUCT */
+
+let editingProductId=null;
+function startProductEdit(id){
+    const p=getProduct(id);if(!p)return;
+    editingProductId=id;
+    $("productName").value=p.name;
+    $("productCategory").value=p.category;
+    $("purchasePrice").value=p.purchasePrice;
+    $("salePrice").value=p.salePrice;
+    $("openingStock").value=p.stock;
+    $("openingStock").readOnly=true;
+    $("productUnit").value=p.unit;
+    $("productDescription").value=p.description||"";
+    $("productSubmitBtn").textContent="Update Product";
+    location.hash="add-product";
+}
+function removeProduct(id){
+    const p=getProduct(id);if(!p)return;
+    const used=db.stockHistory.some(x=>x.productId===id)||db.purchases.some(x=>x.productId===id)||
+        db.sales.some(s=>(s.items||[]).some(i=>i.productId===id));
+    if(used){message("এই পণ্যের লেনদেন/Stock History আছে, তাই হিসাব রক্ষার জন্য Delete করা যাচ্ছে না।");return;}
+    if(!confirm("পণ্যটি Delete করবেন?"))return;
+    db.products=db.products.filter(x=>x.id!==id);cart=cart.filter(x=>x.id!==id);
+    saveDB();renderAll();message("Product deleted.");
+}
+$("productForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const name=$("productName").value.trim(),category=$("productCategory").value;
+    const purchasePrice=Number($("purchasePrice").value),salePrice=Number($("salePrice").value);
+    const stock=Number($("openingStock").value),file=$("productImage").files[0];
+    const old=editingProductId?getProduct(editingProductId):null;
+    if(!name||!category){message("Product Name ও Category দিন।");return;}
+    if(!Number.isFinite(purchasePrice)||purchasePrice<0||!Number.isFinite(salePrice)||salePrice<0){message("সঠিক দাম লিখুন।");return;}
+    if(!old&&(!Number.isInteger(stock)||stock<0)){message("সঠিক Opening Stock দিন।");return;}
+    if(file&&!file.type.startsWith("image/")){message("সঠিক Image নির্বাচন করুন।");return;}
+    if(file&&file.size>1024*1024){message("ছবির সাইজ ১ MB-এর মধ্যে রাখুন।");return;}
+    const commit=image=>{
+        const backup=JSON.stringify(db);
+        if(old){
+            old.name=name;old.category=category;old.purchasePrice=purchasePrice;old.salePrice=salePrice;
+            old.unit=$("productUnit").value;old.description=$("productDescription").value.trim();
+            if(image)old.image=image;
+        }else{
+            const p={id:makeID("PRD-"),name,category,purchasePrice,salePrice,stock,openingStock:stock,
+                unit:$("productUnit").value,description:$("productDescription").value.trim(),image,createdAt:today(),
+                demandMode:"auto",manualDemand:null};
+            db.products.push(p);
+            if(stock>0)db.stockHistory.push({id:makeID("STK-"),productId:p.id,type:"Opening Stock",quantity:stock,date:today(),time:dateTime()});
+        }
+        if(!saveDB()){db=JSON.parse(backup);return;}
+        editingProductId=null;e.target.reset();$("openingStock").readOnly=false;$("productSubmitBtn").textContent="Save Product";
+        renderAll();location.hash="products";message(old?"Product updated.":"Product added.");
+    };
+    if(file){const reader=new FileReader();reader.onload=()=>commit(reader.result);reader.onerror=()=>message("ছবি পড়া যায়নি।");reader.readAsDataURL(file);}
+    else commit("");
+});
+
+/* CART */
+function addToCart(id){
+    const p=getProduct(id);if(!p)return;
+    const item=cart.find(x=>x.id===id);
+    if((item?.quantity||0)>=p.stock){message("স্টকে পর্যাপ্ত পণ্য নেই!");return}
+    if(item)item.quantity++;
+    else cart.push({id,quantity:1});
+    renderCart();
+}
+function changeQuantity(id,change){
+    const item=cart.find(x=>x.id===id),p=getProduct(id);
+    if(!item||!p)return;
+    const next=item.quantity+change;
+    if(next<=0)cart=cart.filter(x=>x.id!==id);
+    else if(next<=p.stock)item.quantity=next;
+    else message("স্টকে পর্যাপ্ত পণ্য নেই!");
+    renderCart();
+}
+function renderCart(){
+    const box=$("cartItems");
+    if(!cart.length)box.innerHTML="<p>Your cart is empty.</p>";
+    else box.innerHTML=cart.map(item=>{
+        const p=getProduct(item.id);if(!p)return "";
+        return `<div class="cart-item">
+        <div><h4>${escapeHTML(p.name)}</h4><small>${money(p.salePrice)} × ${item.quantity}</small>
+        <div class="quantity-control">
+        <button data-minus="${p.id}">−</button><strong>${item.quantity}</strong><button data-plus="${p.id}">+</button>
+        </div></div>
+        <div><strong>${money(p.salePrice*item.quantity)}</strong><br>
+        <button data-remove="${p.id}">Remove</button></div></div>`;
+    }).join("");
+
+    const subtotal=cart.reduce((sum,item)=>sum+getProduct(item.id).salePrice*item.quantity,0);
+    const count=cart.reduce((sum,item)=>sum+item.quantity,0);
+    const discount=Math.max(0,Number($("cartDiscount").value)||0);
+    $("cartTotalItems").textContent=count;
+    $("cartSubtotal").textContent=money(subtotal);
+    $("cartGrandTotal").textContent=money(Math.max(0,subtotal-discount));
+    $("confirmSaleBtn").disabled=!cart.length;
+}
+$("cartItems").addEventListener("click",e=>{
+    const plus=e.target.closest("[data-plus]");
+    const minus=e.target.closest("[data-minus]");
+    const remove=e.target.closest("[data-remove]");
+    if(plus)changeQuantity(plus.dataset.plus,1);
+    if(minus)changeQuantity(minus.dataset.minus,-1);
+    if(remove){cart=cart.filter(x=>x.id!==remove.dataset.remove);renderCart()}
+});
+$("cartDiscount").addEventListener("input",renderCart);
+
+/* CONFIRM SALE */
+$("confirmSaleBtn").addEventListener("click",()=>{
+    if(!cart.length)return;
+    for(const item of cart){
+        const p=getProduct(item.id);
+        if(!p||item.quantity>p.stock){message("স্টক পরিবর্তন হয়েছে। কার্ট পরীক্ষা করুন।");return}
+    }
+
+    const subtotal=cart.reduce((sum,item)=>sum+getProduct(item.id).salePrice*item.quantity,0);
+    const discount=Math.max(0,Number($("cartDiscount").value)||0);
+    if(discount>subtotal){message("Discount মোট বিক্রির চেয়ে বেশি হতে পারবে না।");return}
+
+    const sale={
+        invoice:makeID("INV-"),date:today(),time:dateTime(),
+        customerName:$("customerName").value.trim()||"Walk-in Customer",
+        customerPhone:$("customerPhone").value.trim(),
+        paymentMethod:$("paymentMethod").value,
+        items:[],subtotal,discount,total:subtotal-discount,profit:0
+    };
+
+    const oldStocks=cart.map(item=>({id:item.id,stock:getProduct(item.id).stock}));
+    const oldHistoryLength=db.stockHistory.length;
+
+    cart.forEach(item=>{
+        const p=getProduct(item.id);
+        const revenue=p.salePrice*item.quantity;
+        const cost=p.purchasePrice*item.quantity;
+        sale.items.push({
+            productId:p.id,productName:p.name,quantity:item.quantity,
+            purchasePrice:p.purchasePrice,salePrice:p.salePrice,total:revenue
+        });
+        p.stock-=item.quantity;
+        sale.profit+=revenue-cost;
+        db.stockHistory.push({
+            id:makeID("STK-"),productId:p.id,type:"Sale",
+            quantity:item.quantity,date:today(),time:dateTime(),invoice:sale.invoice
+        });
+    });
+
+    // Discount is allocated proportionally across item profits.
+    sale.profit-=discount;
+    db.sales.push(sale);
+
+    if(sale.customerName!=="Walk-in Customer" &&
+       !db.customers.some(c=>c.phone && c.phone===sale.customerPhone)){
+        db.customers.push({id:makeID("CUS-"),name:sale.customerName,phone:sale.customerPhone});
+    }
+
+    if(!saveDB()){
+        oldStocks.forEach(x=>getProduct(x.id).stock=x.stock);
+        db.stockHistory.splice(oldHistoryLength);
+        db.sales.pop();
+        return;
+    }
+
+    cart=[];
+    $("customerName").value="";
+    $("customerPhone").value="";
+    $("cartDiscount").value=0;
+    renderAll();
+    message("বিক্রি সফল হয়েছে!\nInvoice: "+sale.invoice+"\nTotal: "+money(sale.total));
+    printInvoice(sale);
+});
+
+/* PRODUCT SELECTS */
+function fillProductSelects(){
+    const select=$("stockOutProduct"),previous=select.value;
+    select.innerHTML='<option value="">Select Product</option>'+db.products.map(p=>`<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)} (Stock: ${p.stock})</option>`).join("");
+    select.value=previous;
+    fillPurchaseSelects();
+}
+
+/* STOCK OUT */
+$("stockOutForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const id=$("stockOutProduct").value,p=getProduct(id);
+    const qty=Number($("stockOutQty").value),date=$("stockOutDate").value||today();
+    if(!p||!Number.isInteger(qty)||qty<=0){message("সঠিক তথ্য দিন।");return}
+    if(qty>p.stock){message("স্টকে পর্যাপ্ত পণ্য নেই!");return}
+    const old=p.stock;p.stock-=qty;
+    db.stockHistory.push({
+        id:makeID("STK-"),productId:id,
+        type:"Stock Out - "+$("stockOutReason").value,
+        quantity:qty,date,time:dateTime()
+    });
+    if(saveDB()){e.target.reset();renderAll();message("Stock Out সফল হয়েছে!")}
+    else{p.stock=old;db.stockHistory.pop()}
+});
+
+/* DEMAND CALCULATION */
+function getSoldQuantity(productId,startDate,endDate){
+    let total=0;
+    db.sales.forEach(sale=>{
+        if(sale.date>=startDate && sale.date<=endDate){
+            (sale.items||[]).forEach(item=>{
+                if(item.productId===productId)total+=Number(item.quantity)||0;
+            });
+        }
+    });
+    return total;
+}
+
+function getAutoDemand(product){
+    // Previous 7 complete calendar days, excluding today.
+    const end=dateMinusDays(1);
+    const start=dateMinusDays(7);
+    const sold=getSoldQuantity(product.id,start,end);
+    return {
+        sold,
+        average:sold/7
+    };
+}
+
+function getDemand(product){
+    const auto=getAutoDemand(product);
+    const manual=product.demandMode==="manual" && Number.isFinite(Number(product.manualDemand));
+    const demand=manual?Number(product.manualDemand):auto.average;
+    return {demand,auto,mode:manual?"manual":"auto"};
+}
+
+function renderDemand(){
+    const rows=db.products.map(p=>{
+        const result=getDemand(p);
+        const demand=result.demand;
+        const required=Math.ceil(demand);
+        const need=Math.max(0,required-p.stock);
+        return {p,demand,required,need,mode:result.mode,auto:result.auto};
+    }).sort((a,b)=>b.demand-a.demand);
+
+    const totalDemand=rows.reduce((s,r)=>s+r.required,0);
+    const totalStock=rows.reduce((s,r)=>s+r.p.stock,0);
+    const totalNeed=rows.reduce((s,r)=>s+r.need,0);
+
+    $("demandTotal").textContent=totalDemand;
+    $("demandStock").textContent=totalStock;
+    $("demandNeed").textContent=totalNeed;
+    $("demandProducts").textContent=rows.length;
+
+    if(!rows.length){
+        $("demandTable").innerHTML="<p>প্রথমে পণ্য যোগ করুন। বিক্রির তথ্য থাকলে অটোমেটিক চাহিদা হিসাব হবে।</p>";
+        return;
+    }
+
+    $("demandTable").innerHTML=`
+    <table>
+    <thead><tr>
+        <th>পণ্য</th><th>গত ৭ দিনের বিক্রি</th><th>Auto Average</th>
+        <th>বর্তমান Demand</th><th>বর্তমান Stock</th><th>ঘাটতি</th><th>Mode</th><th>Action</th>
+    </tr></thead>
+    <tbody>
+    ${rows.map(r=>`
+    <tr>
+        <td><strong>${escapeHTML(r.p.name)}</strong></td>
+        <td>${r.auto.sold} ${escapeHTML(r.p.unit)}</td>
+        <td>${r.auto.average.toFixed(2)}</td>
+        <td><strong>${r.required} ${escapeHTML(r.p.unit)}</strong></td>
+        <td>${r.p.stock}</td>
+        <td class="${r.need>0?"demand-high":"demand-low"}">${r.need}</td>
+        <td><span class="badge">${r.mode==="manual"?"Manual":"Automatic"}</span></td>
+        <td>
+            <button class="small-btn blue-btn" data-edit-demand="${escapeHTML(r.p.id)}">Edit</button>
+            ${r.mode==="manual"?`<button class="small-btn" data-auto-demand="${escapeHTML(r.p.id)}">Automatic</button>`:""}
+        </td>
+    </tr>`).join("")}
+    </tbody></table>`;
+}
+
+$("demandTable").addEventListener("click",e=>{
+    const edit=e.target.closest("[data-edit-demand]");
+    const automatic=e.target.closest("[data-auto-demand]");
+
+    if(edit){
+        const p=getProduct(edit.dataset.editDemand);
+        if(!p)return;
+        const current=getDemand(p).demand;
+        const answer=prompt("নতুন দৈনিক চাহিদা লিখুন:",String(Number(current.toFixed(2))));
+        if(answer===null)return;
+        const value=Number(answer);
+        if(!Number.isFinite(value)||value<0){message("সঠিক পরিমাণ লিখুন।");return}
+        p.demandMode="manual";
+        p.manualDemand=value;
+        if(saveDB()){renderDemand();saveDemandSnapshot();message("Manual Demand সংরক্ষণ হয়েছে।")}
+    }
+
+    if(automatic){
+        const p=getProduct(automatic.dataset.autoDemand);
+        if(!p)return;
+        p.demandMode="auto";
+        p.manualDemand=null;
+        if(saveDB()){renderDemand();saveDemandSnapshot();message("Automatic Demand চালু হয়েছে।")}
+    }
+});
+
+function saveDemandSnapshot(){
+    const date=today();
+    db.products.forEach(p=>{
+        const result=getDemand(p);
+        const existing=db.demandHistory.find(h=>h.date===date&&h.productId===p.id);
+        const record={
+            date,productId:p.id,productName:p.name,
+            demand:Number(result.demand.toFixed(2)),
+            autoAverage:Number(result.auto.average.toFixed(2)),
+            soldLast7Days:result.auto.sold,
+            stock:p.stock,mode:result.mode,
+            stockInNeeded:Math.max(0,Math.ceil(result.demand)-p.stock)
+        };
+        if(existing)Object.assign(existing,record);
+        else db.demandHistory.push(record);
+    });
+    saveDB();
+}
+
+function renderDemandHistory(){
+    const date=$("demandHistoryDate").value;
+    const list=db.demandHistory.filter(h=>!date||h.date===date)
+        .sort((a,b)=>b.date.localeCompare(a.date));
+
+    if(!list.length){
+        $("demandHistoryTable").innerHTML="<p>এই তারিখের Demand History নেই।</p>";
+        return;
+    }
+    $("demandHistoryTable").innerHTML=`
+    <table><thead><tr>
+    <th>Date</th><th>Product</th><th>Demand</th><th>7 Day Average</th>
+    <th>7 Day Sales</th><th>Stock</th><th>Stock In Needed</th><th>Mode</th>
+    </tr></thead><tbody>
+    ${list.map(h=>`<tr>
+    <td>${escapeHTML(h.date)}</td><td>${escapeHTML(h.productName)}</td>
+    <td>${h.demand}</td><td>${h.autoAverage}</td><td>${h.soldLast7Days}</td>
+    <td>${h.stock}</td><td>${h.stockInNeeded}</td><td>${escapeHTML(h.mode)}</td>
+    </tr>`).join("")}
+    </tbody></table>`;
+}
+
+$("refreshDemandBtn").addEventListener("click",()=>{
+    renderDemand();saveDemandSnapshot();renderDemandHistory();
+    message("Demand হিসাব আপডেট হয়েছে।");
+});
+$("saveDemandHistoryBtn").addEventListener("click",()=>{
+    saveDemandSnapshot();renderDemandHistory();
+    message("আজকের Demand History সংরক্ষণ হয়েছে।");
+});
+$("demandHistoryDate").addEventListener("change",renderDemandHistory);
+
+/* PURCHASE ORDER + SUPPLIER PAYMENT */
+function purchaseOrders(){return db.purchases.filter(p=>p.recordType==="purchase_order");}
+function orderPaid(order){return (order.payments||[]).reduce((sum,x)=>sum+Number(x.amount||0),0);}
+function orderTotal(order){return Number(order.orderedQty||0)*Number(order.price||0);}
+function orderDue(order){return Math.max(0,orderTotal(order)-orderPaid(order));}
+function orderReceived(order){return !!order.received;}
+function fillPurchaseSelects(){
+    const productSelect=$("poProduct");
+    if(productSelect){const old=productSelect.value;productSelect.innerHTML='<option value="">Select Product</option>'+db.products.map(p=>`<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)} (Stock: ${p.stock})</option>`).join("");productSelect.value=old;}
+    const receiveSelect=$("stockInOrder"),oldReceive=receiveSelect?.value;
+    if(receiveSelect){const pending=purchaseOrders().filter(o=>!orderReceived(o));receiveSelect.innerHTML='<option value="">Select Pending Order</option>'+pending.map(o=>`<option value="${escapeHTML(o.id)}">${escapeHTML(o.id)} — ${escapeHTML(o.productName)} — ${o.orderedQty} — ${escapeHTML(o.supplier)}</option>`).join("");if(pending.some(o=>o.id===oldReceive))receiveSelect.value=oldReceive;}
+    const paySelect=$("paymentOrder"),oldPay=paySelect?.value;
+    if(paySelect){const payable=purchaseOrders().filter(o=>orderReceived(o)&&orderDue(o)>0);paySelect.innerHTML='<option value="">Select Received Order</option>'+payable.map(o=>`<option value="${escapeHTML(o.id)}">${escapeHTML(o.id)} — ${escapeHTML(o.supplier)} — Due ${money(orderDue(o))}</option>`).join("");if(payable.some(o=>o.id===oldPay))paySelect.value=oldPay;updatePaymentDue();}
+}
+function updatePaymentDue(){
+    const order=purchaseOrders().find(o=>o.id===$("paymentOrder")?.value);
+    if($("paymentDueDisplay"))$("paymentDueDisplay").value=order?money(orderDue(order)):"";
+    if($("paymentAmount"))$("paymentAmount").max=order?orderDue(order):"";
+}
+function renderPurchases(){
+    const orders=purchaseOrders();
+    const legacy=db.purchases.filter(p=>p.recordType!=="purchase_order");
+    let html="";
+    if(orders.length){html+=`<div class="table-container"><table><thead><tr><th>Order ID</th><th>Date</th><th>Product</th><th>Order Qty</th><th>Purchase Price</th><th>Received Value</th><th>Paid</th><th>Due</th><th>Status</th></tr></thead><tbody>${orders.slice().reverse().map(o=>{
+        const total=orderTotal(o),paid=orderPaid(o),received=orderReceived(o);
+        return `<tr><td>${escapeHTML(o.id)}</td><td>${escapeHTML(o.date)}</td><td>${escapeHTML(o.productName)}</td><td>${o.orderedQty}</td><td>${money(o.price)}</td><td>${money(received?total:0)}</td><td>${money(paid)}</td><td><strong>${money(received?orderDue(o):0)}</strong></td><td><span class="badge">${received?(orderDue(o)===0?"Received / Paid":"Received / Due"):("Pending Product In")}</span></td></tr>`;
+    }).join("")}</tbody></table></div>`;}
+    if(legacy.length){html+=`<h4 style="margin:15px 0 8px">পুরোনো Stock In Records</h4><div class="table-container"><table><thead><tr><th>Date</th><th>Product</th><th>Qty</th><th>Price</th><th>Total</th><th>Supplier</th></tr></thead><tbody>${legacy.slice().reverse().map(p=>`<tr><td>${escapeHTML(p.date)}</td><td>${escapeHTML(p.productName)}</td><td>${p.quantity}</td><td>${money(p.price)}</td><td>${money(p.total)}</td><td>${escapeHTML(p.supplier)}</td></tr>`).join("")}</tbody></table></div>`;}
+    $("purchaseTableBody").innerHTML=html||"<p>কোনো Purchase Order নেই।</p>";
+    const sums={};orders.filter(orderReceived).forEach(o=>{const name=o.supplier||"Unknown Supplier";if(!sums[name])sums[name]={total:0,paid:0,due:0};sums[name].total+=orderTotal(o);sums[name].paid+=orderPaid(o);sums[name].due+=orderDue(o);});
+    const rows=Object.entries(sums);
+    $("supplierDueTable").innerHTML=rows.length?`<div class="table-container"><table><thead><tr><th>Supplier</th><th>Received Purchase</th><th>Paid</th><th>Due</th></tr></thead><tbody>${rows.map(([name,x])=>`<tr><td>${escapeHTML(name)}</td><td>${money(x.total)}</td><td>${money(x.paid)}</td><td><strong>${money(x.due)}</strong></td></tr>`).join("")}</tbody></table></div>`:"<p>এখনো কোনো পণ্য গ্রহণ করা হয়নি, তাই Supplier Due নেই।</p>";
+    fillPurchaseSelects();
+}
+
+$("purchaseOrderForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const product=getProduct($("poProduct").value),qty=Number($("poQty").value),price=Number($("poPrice").value),supplier=$("poSupplier").value.trim(),date=$("poDate").value||today();
+    if(!product||!Number.isInteger(qty)||qty<=0||!Number.isFinite(price)||price<0||!supplier){message("সঠিক Purchase Order তথ্য দিন।");return;}
+    const order={id:makeID("PO-"),recordType:"purchase_order",productId:product.id,productName:product.name,orderedQty:qty,price,supplier,date,createdAt:dateTime(),received:false,receivedDate:null,payments:[]};
+    db.purchases.push(order);
+    if(supplier&&!db.suppliers.some(x=>String(x.name||"").toLowerCase()===supplier.toLowerCase()))db.suppliers.push({id:makeID("SUP-"),name:supplier});
+    if(saveDB()){e.target.reset();$("poDate").value=today();renderAll();message("Purchase Order তৈরি হয়েছে। Product In না করা পর্যন্ত Stock বা Due পরিবর্তন হবে না।");}
+    else db.purchases=db.purchases.filter(x=>x.id!==order.id);
+});
+
+$("stockInOrder").addEventListener("change",()=>{
+    const order=purchaseOrders().find(o=>o.id===$("stockInOrder").value);
+    $("stockInProductName").value=order?.productName||"";
+    $("stockInQty").value=order?.orderedQty||"";
+    $("stockInPrice").value=order?Number(order.price).toFixed(2):"";
+    $("stockInSupplier").value=order?.supplier||"";
+});
+
+$("stockInForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const order=purchaseOrders().find(o=>o.id===$("stockInOrder").value);
+    if(!order){message("একটি Pending Purchase Order নির্বাচন করুন।");return;}
+    if(orderReceived(order)){message("এই Order-এর পণ্য আগেই গ্রহণ করা হয়েছে। আবার Stock In করা যাবে না।");return;}
+    const product=getProduct(order.productId);
+    if(!product){message("এই Order-এর Product পাওয়া যায়নি।");return;}
+    if(!confirm(`সম্পূর্ণ ${order.orderedQty} ${product.unit} ${order.productName} গ্রহণ করবেন?
+মোট মূল্য: ${money(orderTotal(order))}`))return;
+    const oldStock=product.stock,oldPrice=product.purchasePrice,oldHistory=db.stockHistory.length;
+    product.stock+=Number(order.orderedQty);
+    product.purchasePrice=Number(order.price);
+    order.received=true;order.receivedDate=$("stockInDate").value||today();
+    order.totalReceivedAmount=orderTotal(order);
+    db.stockHistory.push({id:makeID("STK-"),productId:product.id,type:"Stock In",quantity:Number(order.orderedQty),date:order.receivedDate,time:dateTime(),purchaseOrderId:order.id});
+    if(saveDB()){e.target.reset();$("stockInDate").value=today();$("stockInProductName").value="";$("stockInQty").value="";$("stockInPrice").value="";$("stockInSupplier").value="";renderAll();message(`Product In সফল হয়েছে।
+Received Value: ${money(orderTotal(order))}
+Supplier Due: ${money(orderDue(order))}`);}
+    else{product.stock=oldStock;product.purchasePrice=oldPrice;order.received=false;order.receivedDate=null;delete order.totalReceivedAmount;db.stockHistory.splice(oldHistory);}
+});
+
+$("paymentOrder").addEventListener("change",updatePaymentDue);
+$("supplierPaymentForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const order=purchaseOrders().find(o=>o.id===$("paymentOrder").value),amount=Number($("paymentAmount").value);
+    if(!order||!orderReceived(order)){message("শুধু Product In সম্পন্ন Order-এর Payment দেওয়া যাবে।");return;}
+    const due=orderDue(order);
+    if(!Number.isFinite(amount)||amount<=0||amount>due+0.000001){message(`Payment অবশ্যই ০-এর বেশি এবং Due ${money(due)}-এর সমান বা কম হতে হবে।`);return;}
+    const payment={id:makeID("PAY-"),amount,date:$("paymentDate").value||today(),method:$("paymentMethodSupplier").value,note:$("paymentNote").value.trim(),time:dateTime()};
+    order.payments=order.payments||[];order.payments.push(payment);
+    if(saveDB()){e.target.reset();$("paymentDate").value=today();renderPurchases();message(`Supplier Payment সংরক্ষণ হয়েছে।
+Paid: ${money(amount)}
+বাকি Due: ${money(orderDue(order))}`);}
+    else order.payments.pop();
+});
+
+/* SALES HISTORY */
+function renderSales(){
+    const date=$("salesFilterDate").value;
+    const list=db.sales.filter(s=>!date||s.date===date);
+    $("salesTableBody").innerHTML=list.length?`
+    <div class="table-container"><table><thead><tr>
+    <th>Invoice</th><th>Date</th><th>Customer</th><th>Total</th><th>Profit</th><th>Payment</th><th>Print</th>
+    </tr></thead><tbody>${list.slice().reverse().map(s=>`<tr>
+    <td>${escapeHTML(s.invoice)}</td><td>${escapeHTML(s.date)}</td><td>${escapeHTML(s.customerName)}</td>
+    <td>${money(s.total)}</td><td>${money(s.profit)}</td><td>${escapeHTML(s.paymentMethod)}</td>
+    <td><button class="small-btn" data-print="${escapeHTML(s.invoice)}">Print</button></td>
+    </tr>`).join("")}</tbody></table></div>`:"<p>কোনো বিক্রির তথ্য নেই।</p>";
+}
+$("salesFilterDate").addEventListener("change",renderSales);
+$("salesTableBody").addEventListener("click",e=>{
+    const btn=e.target.closest("[data-print]");
+    if(btn){const s=db.sales.find(x=>x.invoice===btn.dataset.print);if(s)printInvoice(s)}
+});
+
+/* STOCK TABLE */
+function renderStock(){
+    $("stockTableBody").innerHTML=`
+    <div class="table-container"><table><thead><tr>
+    <th>Product</th><th>Opening</th><th>Stock In</th><th>Stock Out</th><th>Current</th><th>Status</th>
+    </tr></thead><tbody>${db.products.map(p=>{
+        const incoming=db.stockHistory.filter(h=>h.productId===p.id&&h.type==="Stock In").reduce((s,h)=>s+h.quantity,0);
+        const outgoing=db.stockHistory.filter(h=>h.productId===p.id&&(h.type==="Sale"||h.type.startsWith("Stock Out"))).reduce((s,h)=>s+h.quantity,0);
+        return `<tr><td>${escapeHTML(p.name)}</td><td>${p.openingStock}</td><td>${incoming}</td><td>${outgoing}</td><td>${p.stock}</td>
+        <td>${p.stock<=5?'<span class="demand-high">Low Stock</span>':'<span class="demand-low">Available</span>'}</td></tr>`;
+    }).join("")}</tbody></table></div>`;
+}
+
+/* DAILY STOCK REPORT */
+function generateDailyReport(){
+    const selected=$("reportDate").value||today();
+    let opening=0,incoming=0,outgoing=0;
+    db.products.forEach(p=>{
+        const h=db.stockHistory.filter(x=>x.productId===p.id);
+        const beforeIn=h.filter(x=>x.date<selected&&(x.type==="Opening Stock"||x.type==="Stock In")).reduce((s,x)=>s+x.quantity,0);
+        const beforeOut=h.filter(x=>x.date<selected&&(x.type==="Sale"||x.type.startsWith("Stock Out"))).reduce((s,x)=>s+x.quantity,0);
+        const dayIn=h.filter(x=>x.date===selected&&(x.type==="Opening Stock"||x.type==="Stock In")).reduce((s,x)=>s+x.quantity,0);
+        const dayOut=h.filter(x=>x.date===selected&&(x.type==="Sale"||x.type.startsWith("Stock Out"))).reduce((s,x)=>s+x.quantity,0);
+        opening+=beforeIn-beforeOut;incoming+=dayIn;outgoing+=dayOut;
+    });
+    $("openingStockReport").textContent=opening;
+    $("stockInReport").textContent=incoming;
+    $("stockOutReport").textContent=outgoing;
+    $("closingStockReport").textContent=opening+incoming-outgoing;
+}
+$("generateReportBtn").addEventListener("click",generateDailyReport);
+
+/* CUSTOMER */
+$("customerForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const name=$("newCustomerName").value.trim();
+    if(!name){message("নাম লিখুন।");return}
+    db.customers.push({id:makeID("CUS-"),name,phone:$("newCustomerPhone").value.trim(),address:$("newCustomerAddress").value.trim()});
+    if(saveDB()){e.target.reset();renderCustomers();message("Customer যোগ হয়েছে।")}
+});
+function renderCustomers(){
+    $("customerTableBody").innerHTML=db.customers.map(c=>`<p>${escapeHTML(c.name)} — ${escapeHTML(c.phone)} — ${escapeHTML(c.address)}</p>`).join("")||"<p>কোনো Customer নেই।</p>";
+}
+
+/* SUPPLIER */
+$("supplierForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const name=$("supplierName").value.trim();
+    if(!name)return;
+    db.suppliers.push({id:makeID("SUP-"),name,phone:$("supplierPhone").value.trim(),address:$("supplierAddress").value.trim()});
+    if(saveDB()){e.target.reset();renderSuppliers();message("Supplier যোগ হয়েছে।")}
+});
+function renderSuppliers(){
+    $("supplierTableBody").innerHTML=db.suppliers.map(s=>`<p>${escapeHTML(s.name)} — ${escapeHTML(s.phone)} — ${escapeHTML(s.address)}</p>`).join("")||"<p>কোনো Supplier নেই।</p>";
+}
+
+/* EXPENSE */
+$("expenseForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const name=$("expenseName").value.trim(),amount=Number($("expenseAmount").value),date=$("expenseDate").value||today();
+    if(!name||!Number.isFinite(amount)||amount<=0){message("সঠিক Expense তথ্য দিন।");return}
+    db.expenses.push({id:makeID("EXP-"),name,amount,date,time:dateTime()});
+    if(saveDB()){e.target.reset();renderExpenses();message("Expense সংরক্ষণ হয়েছে।")}
+});
+function renderExpenses(){
+    $("expenseTableBody").innerHTML=db.expenses.map(x=>`<p>${escapeHTML(x.date)} — ${escapeHTML(x.name)} — <strong>${money(x.amount)}</strong></p>`).join("")||"<p>কোনো Expense নেই।</p>";
+}
+
+/* INVOICE */
+function printInvoice(sale){
+    const win=window.open("","_blank");
+    if(!win){message("Browser popup অনুমতি দিন।");return}
+    const rows=sale.items.map(i=>`<tr><td>${escapeHTML(i.productName)}</td><td>${i.quantity}</td><td>${money(i.salePrice)}</td><td>${money(i.total)}</td></tr>`).join("");
+    win.document.write(`<!DOCTYPE html><html><head><title>Invoice</title><style>
+    body{font-family:Arial;padding:25px}h1{color:#087f5b}table{width:100%;border-collapse:collapse;margin-top:20px}
+    td,th{border:1px solid #ddd;padding:10px;text-align:left}.total{text-align:right;margin-top:20px}
+    @media print{button{display:none}}</style></head><body>
+    <h1>MY INVENTORY</h1><p>Sales Invoice</p><hr>
+    <p>Invoice: ${escapeHTML(sale.invoice)}</p><p>Date: ${escapeHTML(sale.date)}</p>
+    <p>Customer: ${escapeHTML(sale.customerName)}</p><p>Phone: ${escapeHTML(sale.customerPhone)}</p>
+    <table><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="total"><p>Subtotal: ${money(sale.subtotal)}</p><p>Discount: ${money(sale.discount)}</p>
+    <h2>Grand Total: ${money(sale.total)}</h2><p>Payment: ${escapeHTML(sale.paymentMethod)}</p></div>
+    <p>Thank you!</p><button onclick="window.print()">Print Invoice</button></body></html>`);
+    win.document.close();
+}
+
+/* DASHBOARD */
+function renderDashboard(){
+    const sales=db.sales.filter(s=>s.date===today());
+    $("totalProducts").textContent=db.products.length;
+    $("totalStock").textContent=db.products.reduce((s,p)=>s+p.stock,0);
+    $("todaySales").textContent=money(sales.reduce((s,x)=>s+x.total,0));
+    $("todayProfit").textContent=money(sales.reduce((s,x)=>s+x.profit,0));
+}
+
+/* SETTINGS */
+$("settingsForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    localStorage.setItem("inventory_settings",JSON.stringify({
+        businessName:$("businessName").value,currency:$("currency").value
+    }));
+    message("Settings সংরক্ষণ হয়েছে!");
+});
+
+/* HISTORY */
+function renderHistory(){
+    const all=[
+        ...db.stockHistory.map(x=>({date:x.date,type:x.type,detail:getProduct(x.productId)?.name||"Product",qty:x.quantity,ref:x.invoice||""})),
+        ...db.sales.map(x=>({date:x.date,type:"Sale Invoice",detail:x.customerName,qty:"",ref:x.invoice}))
+    ].sort((a,b)=>b.date.localeCompare(a.date));
+    $("historyTableBody").innerHTML=all.length?`
+    <div class="table-container"><table><thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Qty</th><th>Reference</th></tr></thead>
+    <tbody>${all.map(x=>`<tr><td>${escapeHTML(x.date)}</td><td>${escapeHTML(x.type)}</td><td>${escapeHTML(x.detail)}</td><td>${x.qty}</td><td>${escapeHTML(x.ref)}</td></tr>`).join("")}</tbody></table></div>`:"<p>কোনো History নেই।</p>";
+}
+
+/* RENDER ALL */
+function renderAll(){
+    renderCategories();renderCategoryOptions();renderCategoryFilters();
+    renderProducts();renderCart();renderDashboard();
+    renderPurchases();renderSales();renderStock();
+    renderCustomers();renderSuppliers();renderExpenses();
+    fillProductSelects();renderDemand();renderDemandHistory();
+    renderHistory();generateDailyReport();
+}
+
+/* START */
+document.addEventListener("DOMContentLoaded",async()=>{
+    ["stockInDate","stockOutDate","expenseDate","reportDate","poDate","paymentDate"].forEach(id=>{if($(id))$(id).value=today();});
+    $("demandHistoryDate").value="";
+    await loadCloudDatabase();
+    renderAll();
+    saveDemandSnapshot();
+    renderDemandHistory();
+    console.log("Inventory Management App Started!");
+});
+</script>
+</body>
+</html>
