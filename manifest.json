@@ -1,0 +1,9 @@
+{
+  "name": "My Inventory Management",
+  "short_name": "My Inventory",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#047857",
+  "orientation": "portrait"
+}
